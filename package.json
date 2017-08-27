@@ -4,10 +4,16 @@
   "description": "An API that provides basic details of programming lanuages and their popularity.",
   "main": "./src/client/index.js",
   "scripts": {
-    "test": "run test"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "start cmd /c call ./node_modules/.bin/webpack-dev-server --port 8100 --inline --hot & start cmd /c webpack --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juhojo/Populang.git"
   },
   "keywords": [
     "api",
+    "webpack",
     "restful",
     "mongodb",
     "express",
@@ -18,7 +24,18 @@
   "author": "Juho Jokela",
   "license": "MIT",
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
     "css-loader": "^0.28.5",
-    "style-loader": "^0.18.2"
+    "mongodb": "^2.2.31",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "style-loader": "^0.18.2",
+    "styled-components": "^2.1.2",
+    "webpack": "^3.5.5",
+    "webpack-dev-server": "^2.7.1"
   }
 }
