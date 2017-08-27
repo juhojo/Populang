@@ -1,0 +1,24 @@
+{
+  "name": "populang",
+  "version": "1.0.0",
+  "description": "An API that provides basic details of programming lanuages and their popularity.",
+  "main": "./src/client/index.js",
+  "scripts": {
+    "test": "run test"
+  },
+  "keywords": [
+    "api",
+    "restful",
+    "mongodb",
+    "express",
+    "nodejs",
+    "react",
+    "styled-components"
+  ],
+  "author": "Juho Jokela",
+  "license": "MIT",
+  "devDependencies": {
+    "css-loader": "^0.28.5",
+    "style-loader": "^0.18.2"
+  }
+}
