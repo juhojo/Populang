@@ -7,6 +7,22 @@ const LangSchema = new Schema({
     type: String,
     required: 'Please provide the name of the programming language'
   },
+  total: {
+    type: Number,
+    default: 0,
+  },
+  popularity: {
+    type: Number,
+    default: 0,
+  },
+  description: {
+    type: String,
+    default: '',
+  },
+  wikipedia_uri: {
+    type: String,
+    default: '',
+  },
   createdAt: {
     type: Date,
     default: Date.now

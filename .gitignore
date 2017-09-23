@@ -62,3 +62,6 @@ bundle.js
 
 # ignore config
 .config
+
+# ignore temp
+temp

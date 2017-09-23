@@ -11,4 +11,7 @@ module.exports = function(app) {
     .get(langList.read_a_language)
     .put(langList.update_a_language)
     .delete(langList.delete_a_language);
+
+  app.route('/languages?order=:order')
+    .get(langList.list_all_languages_in_order);
 };
