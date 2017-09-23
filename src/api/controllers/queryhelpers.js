@@ -1,4 +1,25 @@
 module.exports = {
+  allowed: {
+    order: [
+      {
+        key: 'asc',
+        value: 1,
+      },
+      {
+        key: 'desc',
+        value: -1,
+      },
+      {
+        key: 1,
+        value: 1,
+      },
+      {
+        key: -1,
+        value: -1,
+      }
+    ],
+    sort: ['popularity', 'total', 'name'],
+  },
   optional(param) {
     let stringClone = param.slice();
     const fields = {};
