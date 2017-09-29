@@ -42,5 +42,8 @@
     "styled-components": "^2.1.2",
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.7.1"
+  },
+  "dependencies": {
+    "nodemon": "^1.12.1"
   }
 }

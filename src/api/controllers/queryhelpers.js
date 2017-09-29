@@ -10,15 +10,19 @@ module.exports = {
         value: -1,
       },
       {
-        key: 1,
+        key: '1',
         value: 1,
       },
       {
-        key: -1,
+        key: '-1',
         value: -1,
       }
     ],
-    sort: ['popularity', 'total', 'name'],
+    sort: [
+      'popularity',
+      'total',
+      'name',
+    ],
   },
   optional(param) {
     let stringClone = param.slice();

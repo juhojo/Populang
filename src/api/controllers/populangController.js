@@ -18,34 +18,27 @@ exports.list_all_languages = function(req, res) {
 
 exports.list_all_languages_in_order = function(req, res) {
   const { response, invalid } = responses;
-  const { allowed: order } = helpers;
+  const { allowed: { order } } = helpers;
   let ord = -1; // Descending by default
   let indx = -1;
 
-  order.some((item, i) => {
-    indx = i;
-    return item.key === req.params.order;
+  order.forEach((item, i) => {
+    if (item.key === req.params.order) {
+      indx = i;
+    }
   });
+
   if (indx !== -1) {
     ord = order[indx].value;
   } else {
     res.json(response(invalid.param(req.params.order)));
   }
 
-  // let order = -1; // Descending
-  // if (req.params.order === 'desc') {
-  //   order = -1;
-  // } else if (req.params.order === 'asc') {
-  //   order = 1;
-  // } else {
-  //   res.json(response(invalid.param(req.params.order)));
-  // }
-
-  Lang.find().sort({ popularity: ord }, function(err, lang) {
+  Lang.find({}, function(err, lang) {
     if (err)
       res.send(err);
     res.json(lang);
-  });
+  }).sort({ popularity: ord });
 }
 
 exports.sort_all_languages_by_sort_method_in_order = function(req, res) {
@@ -76,41 +69,67 @@ exports.list_languages = function(req, res) {
 exports.list_languages_in_order = function(req, res) {
   const langArray = req.params.langNames.split(',');
   const { response, invalid } = responses;
-  let order = -1;
-  if (req.params.order === 'desc') {
-    order = -1;
-  } else if (req.params.order === 'asc') {
-    order = 1;
+  const { allowed: { order } } = helpers;
+  let ord = -1; // Descending by default
+  let indx = -1;
+
+  order.forEach((item, i) => {
+    if (item.key === req.params.order) {
+      indx = i;
+    }
+  });
+
+  if (indx !== -1) {
+    ord = order[indx].value;
   } else {
     res.json(response(invalid.param(req.params.order)));
   }
 
-  Lang.find({ name: { $in: langArray } }).sort({ popularity: order }, function(err, lang) {
+  Lang.find({ name: { $in: langArray }}, function(err, lang) {
     if (err)
       res.send(err);
     res.json(lang);
-  });
+  }).sort({ popularity: ord });
 };
 
 exports.sort_languages_by_sort_method_in_order = function(req, res) {
   const langArray = req.params.langNames.split(',');
   const { response, invalid } = responses;
-  let sort = 'popularity';
-  let order = -1;
+  const { allowed: { sort, order }} = helpers;
+  let ord = -1;
+  let sortBy = 'popularity';
+  let sIndx = -1;
+  let oIndx = -1;
 
-  // if (req.params.order === 'desc' || )
+  sort.forEach((item, i) => {
+    if (item === req.params.sortBy) {
+      sIndx = i;
+    }
+  });
 
-  if (req.params.sort_method === 'popularity') {
-    sort = 'popularity';
-  } else if (req.params.sort_method === 'total') {
-    sort = 'total';
-  } else if (req.params.sort_method === 'name') {
-    sort = 'name';
+  order.forEach((item, i) => {
+    if (item.key === req.params.order) {
+      oIndx = i;
+    }
+  });
+
+  if (sIndx !== -1) {
+    sortBy = sort[sIndx];
   } else {
-    res.json(response(invalid.param(req.params.sort_method)));
+    res.json(response(invalid.param(req.params.sortBy)));
   }
 
-  Lang.find({ name: { $in: langArray } }).sort({ [sort]: -1 });
+  if (oInx !== -1) {
+    ord = order[oIndx].value;
+  } else {
+    res.json(response(invalid.param(req.params.order)));
+  }
+
+  Lang.find({ name: { $in: langArray } }, function(err, lang) {
+    if (err)
+      res.send(err);
+    res.json(lang);
+  }).sort({ [sortBy]: ord });
 };
 
 /* Single language methods */
