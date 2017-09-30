@@ -92,6 +92,34 @@ exports.list_languages_in_order = function(req, res) {
   }).sort({ popularity: ord });
 };
 
+exports.sort_languages_by_sort_method = function(req, res) {
+  const langArray = req.params.langNames.split(',');
+  const { response, invalid } = responses;
+  const { allowed: { sort }} = helpers;
+  let sortBy = 'popularity';
+  let ord = -1;
+  let indx = -1;
+
+  sort.forEach((item, i) => {
+    if (item.key === req.params.sortBy) {
+      indx = i;
+    }
+  });
+
+  if (indx !== -1) {
+    sortBy = sort[indx].key;
+    ord = sort[indx].defaultOrder;
+  } else {
+    res.json(response(invalid.param(req.params.sortBy)));
+  }
+
+  Lang.find({ name: { $in: langArray } }, function(err, lang) {
+    if (err)
+      res.send(err);
+    res.json(lang);
+  }).sort({ [sortBy]: ord });
+}
+
 exports.sort_languages_by_sort_method_in_order = function(req, res) {
   const langArray = req.params.langNames.split(',');
   const { response, invalid } = responses;
@@ -102,7 +130,7 @@ exports.sort_languages_by_sort_method_in_order = function(req, res) {
   let oIndx = -1;
 
   sort.forEach((item, i) => {
-    if (item === req.params.sortBy) {
+    if (item.key === req.params.sortBy) {
       sIndx = i;
     }
   });
@@ -114,12 +142,12 @@ exports.sort_languages_by_sort_method_in_order = function(req, res) {
   });
 
   if (sIndx !== -1) {
-    sortBy = sort[sIndx];
+    sortBy = sort[sIndx].key;
   } else {
     res.json(response(invalid.param(req.params.sortBy)));
   }
 
-  if (oInx !== -1) {
+  if (oIndx !== -1) {
     ord = order[oIndx].value;
   } else {
     res.json(response(invalid.param(req.params.order)));

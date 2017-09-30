@@ -19,9 +19,18 @@ module.exports = {
       }
     ],
     sort: [
-      'popularity',
-      'total',
-      'name',
+      {
+        key: 'popularity',
+        defaultOrder: -1,
+      },
+      {
+        key: 'total',
+        defaultOrder: -1,
+      },
+      {
+        key: 'name',
+        defaultOrder: 1,
+      },
     ],
   },
   optional(param) {

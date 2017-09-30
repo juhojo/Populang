@@ -21,6 +21,9 @@ module.exports = function(app) {
   app.route('/languages/:langNames/order/:order')
     .get(langList.list_languages_in_order);
 
+  app.route('/languages/:langNames/sort/:sortBy')
+    .get(langList.sort_languages_by_sort_method);
+
   app.route('/languages/:langNames/sort/:sortBy/order/:order')
     .get(langList.sort_languages_by_sort_method_in_order);
 
