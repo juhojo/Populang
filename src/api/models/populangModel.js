@@ -19,10 +19,6 @@ const LangSchema = new Schema({
     type: String,
     default: '',
   },
-  wikipedia_uri: {
-    type: String,
-    default: '',
-  },
   createdAt: {
     type: Date,
     default: Date.now
