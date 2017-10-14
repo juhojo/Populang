@@ -8,7 +8,7 @@ const Lang = mongoose.model('Languages');
 
 exports.list_all_languages = function(req, res) {
   const { response, invalid } = responses;
-  const { allowed: { sort, order }} = helpers;
+  const { allowed: { tags: { sort, order } } } = helpers;
   const { sort: sortQuery, order: orderQuery } = req.query;
   let ord = -1;
   let sortBy = 'popularity';
@@ -63,53 +63,59 @@ exports.graph_all_languages = function(req, res) {
 };
 
 exports.list_languages = function(req, res) {
-  const langArray = req.params.langNames.split(',');
   const { response, invalid } = responses;
-  const { allowed: { sort, order }} = helpers;
-  const { sort: sortQuery, order: orderQuery } = req.query;
-  let ord = -1;
-  let sortBy = 'popularity';
-  let sIndx = -1;
-  let oIndx = -1;
   let error = false;
-
-  if (sortQuery) {
-    sort.forEach((item, i) => {
-      if (item.key === sortQuery) {
-        sIndx = i;
-      }
-    });
-
-    if (sIndx !== -1) {
-      sortBy = sort[sIndx].key;
-      ord = sort[sIndx].defaultOrder;
-    } else {
-      res.json(response(invalid.param(sortQuery)));
-      error = true;
-    }
+  if (req.params.langNames.includes(',')) {
+    res.json(response(invalid.separator(req.params.langNames)));
+    error = true;
   }
-
-  if (orderQuery) {
-    order.forEach((item, i) => {
-      if (item.key === orderQuery) {
-        oIndx = i;
-      }
-    });
-
-    if (oIndx !== -1) {
-      ord = order[oIndx].value;
-    } else {
-      res.json(response(invalid.param(orderQuery)));
-      error = true;
-    }
-  }
-
   if (!error) {
-    Lang.find({ name: { $in: langArray } }, function(err, lang) {
-      if (err)
-        res.send(err);
-      res.json(lang);
-    }).sort({ [sortBy]: ord });
+    const langArray = req.params.langNames.toLowerCase().split(';');
+    const { allowed: { tags: { sort, order } } } = helpers;
+    const { sort: sortQuery, order: orderQuery } = req.query;
+    let ord = -1;
+    let sortBy = 'popularity';
+    let sIndx = -1;
+    let oIndx = -1;
+
+    if (sortQuery) {
+      sort.forEach((item, i) => {
+        if (item.key === sortQuery) {
+          sIndx = i;
+        }
+      });
+
+      if (sIndx !== -1) {
+        sortBy = sort[sIndx].key;
+        ord = sort[sIndx].defaultOrder;
+      } else {
+        res.json(response(invalid.param(sortQuery)));
+        error = true;
+      }
+    }
+
+    if (orderQuery) {
+      order.forEach((item, i) => {
+        if (item.key === orderQuery) {
+          oIndx = i;
+        }
+      });
+
+      if (oIndx !== -1) {
+        ord = order[oIndx].value;
+      } else {
+        res.json(response(invalid.param(orderQuery)));
+        error = true;
+      }
+    }
+
+    if (!error) {
+      Lang.find({ name: { $in: langArray } }, function(err, lang) {
+        if (err)
+          res.send(err);
+        res.json(lang);
+      }).sort({ [sortBy]: ord });
+    }
   }
 };
 
@@ -129,6 +135,7 @@ exports.create_a_language = function(req, res) {
 };
 
 exports.read_a_language = function(req, res) {
+  console.log(req);
   Lang.findById(req.params.langId, function(err, lang) {
     if (err)
       res.send(err);

@@ -4,94 +4,135 @@ const request = require('request');
 const moment = require('moment');
 const config = require('../../../.config/config');
 const responses = require('./responses');
-const queries = require('./queryhelpers');
+const helpers = require('./queryhelpers');
 const { stackexchange: { baseUrl, separatorExp: exp } } = config;
 const { response: resp, invalid } = responses;
 
 const toUnix = (str) => Date.parse(str).getTime()/1000;
 
-// Uri structure functions
-const infoUri = (param) => `${baseUrl}tags/${param}/wikis?site=stackoverflow`;
-const countUri = (params) => {
-  console.log('asdasdasdasd', params);
-  const optionalFields = queries.optional(params[0]);
-  const thisYear = moment().year();
-  let queryparts = [
-    'site=stackoverflow'
-  ];
-  let uri = `${baseUrl}tags/${params.tags}/info?`;
+// Validate tags
 
-  if (!params.order && !params.sortType && !params.site) {
-    uri += queries.default();
+const tagsValid = (res, tags) => {
+  if (!tags) {
+    res.json(resp(invalid.requiredParam('tags')));
+    return false;
+  }
+  if (!tags.match(exp)) {
+    res.json(resp(invalid.separator(tags)));
+    return false;
+  }
+  return true;
+};
+
+// Uri structure functions
+
+const infoUri = (param) => `${baseUrl}tags/${param}/wikis?site=stackoverflow`;
+
+const countUri = (tags, query) => {
+  const { sort: sortQuery, order: orderQuery, site: siteQuery } = query;
+  const { allowed: { tags: { sort, order } } } = helpers;
+  let queryparts = [''];
+  let uri = `${baseUrl}tags/${tags}/info?site=stackoverflow`;
+
+  if (!orderQuery && !sortQuery) {
+    uri += helpers.default('tags');
     return uri;
   }
 
-
-
-  // if (params.year) {
-  //   if (Number(params.year) <= thisYear) {
-  //     const from = toUnix(`01-Jan-${year} 00:00:00`);
-  //     let to = '';
-  //     if (Number(params.year) === thisYear) {
-  //       to = Date.now()/1000;
-  //     } else {
-  //       to = Date.parse(`31-Dec-${year} 23:59:59`).getTime()/1000;
-  //     }
-  //     queryparts.push()
-  //     // `${params.year}`
-  //   }
-  // }
-
-
-
-
-
-  if (params.order) {
-    let order = 'order=';
-    if (params.order === 'desc') {
-      order += 'desc';
-    } else if (params.order === 'asc') {
-      order += 'asc';
+  let sortBy = 'sort=popular';
+  let orderBy = 'order=desc';
+  if (sortQuery) {
+    if (sort.some(item => item.key === sortQuery)) {
+      sortBy = `sort=${sortQuery}`;
+      sort.forEach((item) => {
+        if (item.key === sortQuery) {
+          orderBy = `order=${item.defaultOrder}`;
+        }
+      });
     }
-    queryparts.push(order)
-  } else {
-    console.log('here a');
-    queryparts.push('order=desc');
   }
 
+  queryparts.push(sortBy);
 
-
-
-  const defaultSort = 'popular'
-  if (params.sortType) {
-    let sort = 'sort=';
-    if (params.sortType === defaultSort) {
-      sort += defaultSort;
-    } else if (params.sortType === 'activity') {
-      sort += 'activity';
-    } else if (params.sortType === 'name') {
-      sort += 'name';
-    }
-    queryparts.push(sort);
-  } else {
-    console.log('here b');
-    queryparts.push(`sort=${defaultSort}`);
+  if (orderQuery) {
+    order.forEach((item) => {
+      if (item.key === orderQuery) {
+        orderBy = `order=${item.value}`;
+      }
+    });
   }
 
-  console.log('queryparts', queryparts);
+  queryparts.push(orderBy);
 
   uri += queryparts.join('&');
-  // `${baseUrl}tags/${req.params.tags}/info?order=desc&sort=popular&site=stackoverflow`;
   return uri;
-}
+};
+
+const questionUri = (tags, query) => {
+  const {
+    fromdate: fromQuery,
+    todate: toQuery,
+    sort: sortQuery,
+    order: orderQuery,
+  } = query;
+  const { allowed: { questions: { sort, order } } } = helpers;
+  let queryparts = [''];
+  let uri = `${baseUrl}questions?tagged=${tags}&site=stackoverflow`;
+
+  let sortBy = 'sort=votes';
+  let orderBy = 'order=desc';
+
+  if (sortQuery) {
+    if (sort.some(item => item.key === sortQuery)) {
+      sortBy = `sort=${sortQuery}`;
+      sort.forEach((item) => {
+        if (item.key === sortQuery) {
+          orderBy = `order=${item.defaultOrder}`;
+        }
+      });
+    }
+  }
+
+  queryparts.push(sortBy);
+
+  if (orderQuery) {
+    order.forEach((item) => {
+      if (item.key === orderQuery) {
+        orderBy = `order=${item.value}`;
+      }
+    });
+  }
+
+  queryparts.push(orderBy);
+
+  let fromUnix;
+
+  if (fromQuery) {
+    const unix = Number(fromQuery);
+    if (!isNaN(unix) && unix < Date.now() && unix > 0) {
+      queryparts.push(`fromdate=${unix}`);
+      fromUnix = unix;
+    }
+  }
+
+  if (toQuery) {
+    const unix = Number(toQuery);
+    if (!isNaN(unix) && unix < Date.now() && unix > 0) {
+      if (!fromUnix || unix > fromUnix) {
+        queryparts.push(`todate=${unix}`);
+      }
+    }
+  }
+
+  uri += queryparts.join('&');
+  return uri;
+};
+
+// Exports
 
 exports.read_tags_info = function(req, res) {
-  if (!req.params.tags) {
-    res.json(resp(invalid.requiredParam('tags')));
-  }
-  if (req.params.tags && !req.params.tags.match(exp)) {
-    res.json(resp(invalid.separator(req.params.tags)));
-  } else {
+  const tags = req.params.tags;
+  if (tagsValid(res, tags)) {
     const uri = infoUri(req.params.tags);
     request({
       uri,
@@ -118,13 +159,9 @@ exports.read_tags_info = function(req, res) {
 };
 
 exports.read_tags_postcount = function(req, res) {
-  if (!req.params.tags) {
-    res.json(resp(invalid.requiredParam('tags')));
-  }
-  if (req.params.tags && !req.params.tags.match(exp)) {
-    res.json(resp(invalid.separator(req.params.tags)));
-  } else {
-    const uri = countUri(req.params);
+  const tags = req.params.tags;
+  if (tagsValid(res, tags)) {
+    const uri = countUri(tags, req.query);
     request({
       uri,
       gzip: true,
@@ -138,6 +175,37 @@ exports.read_tags_postcount = function(req, res) {
             {
               'name': item.name,
               'popularity': item.count
+            }
+          ));
+          res.json(data);
+        } else {
+          res.json(resp(invalid.length(req.params.tags)));
+        }
+      }
+    });
+  }
+}
+
+exports.read_questions_with_tags = function(req, res) {
+  const tags = req.params.tags;
+  console.log(tags);
+  if (tagsValid(res, tags)) {
+    const uri = questionUri(tags, req.query);
+    request({
+      uri,
+      gzip: true,
+    }, (error, response, body) => {
+      if (error) {
+        res.send(error);
+      } else {
+        const parsed = JSON.parse(body);
+        if (parsed.items.length > 0) {
+          const data = parsed.items.map(item => (
+            {
+              'tags': item.tags,
+              'score': item.score,
+              'answer_count': item.answer_count,
+              'view_count': item.view_count,
             }
           ));
           res.json(data);

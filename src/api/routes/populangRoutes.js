@@ -14,6 +14,8 @@ module.exports = function(app) {
   app.route('/languages/:langNames')
     .get(langList.list_languages);
 
+  // TODO Remove add, update and delete from routes
+
   // Single language routes
   app.route('/languages/add')
     .post(langList.create_a_language);

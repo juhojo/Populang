@@ -6,6 +6,8 @@ var express = require('express'),
   bodyParser = require('body-parser'),
   config = require('../../.config/config');
 
+require('./scheduledjobs');
+
 // mongoose instance connection url connection
 mongoose.Promise = global.Promise;
 mongoose.connect(config.database, config.options);
